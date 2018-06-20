@@ -1,7 +1,7 @@
 class ChallengesController < ApplicationController
 
   def index
-    @challenges = Challenge.all
+    @challenges = Challenge.all.sort_by { |c| c.number }
   end
 
   def show
