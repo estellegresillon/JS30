@@ -1,0 +1,77 @@
+<div id="challenge31">
+
+  <div class="container">
+    <div class="row">
+      <form role="form">
+        <div class="form-group">
+          <input type="text" id="input" placeholder="Type an address">
+        </div>
+        <button type="submit" id="btn-submit">
+          Submit
+        </button>
+      </form>
+    </div>
+    <div class="row" id="modal">
+      <ul id="results">
+        <li id="icon"></li>
+        <li id="longitude"></li>
+        <li id="latitude"></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+
+<script>
+
+const button = document.getElementById("btn-submit");
+const input = document.getElementById("input");
+// const latitudeField = document.getElementById("latitude");
+// const longitudeField = document.getElementById("longitude");
+
+const temperatureField = document.getElementById("latitude");
+const textField = document.getElementById("longitude");
+const picto = document.getElementById("icon");
+
+
+// button.addEventListener('click', (event) => {
+//   event.preventDefault();
+//   fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${input.value}`)
+//     .then(response => response.json())
+//     .then((data) => {
+//       console.log(data);
+//       console.log(data.results);
+//       latitudeField.innerHTML = "";
+//       longitudeField.innerHTML = "";
+//       latitudeField.insertAdjacentHTML('beforeend', `Latitude : ${data.results[0].geometry.location.lat}`);
+//       longitudeField.insertAdjacentHTML('beforeend', `Longitude : ${data.results[0].geometry.location.lng}`);
+//     });
+// });
+
+
+button.addEventListener('click', (event) => {
+  event.preventDefault();
+  fetch(`http://dataservice.accuweather.com/locations/v1/cities/search?apikey=0ctjKt6y3BOvzOIhDG40eZ7Qdhtf981T&q=${input.value}&language=fr-fr&details=false`)
+    .then(response => response.json())
+    .then((data) => {
+      const keycode = data[0].Key;
+
+      fetch(`http://dataservice.accuweather.com/currentconditions/v1/${keycode}?apikey=0ctjKt6y3BOvzOIhDG40eZ7Qdhtf981T&details=false&language=fr-fr`)
+        .then(response => response.json())
+        .then((data) => {
+          let icon = data[0].WeatherIcon;
+          if (icon < 10) {
+            icon = `0${icon}`;
+          }
+          picto.innerHTML = "";
+          temperatureField.innerHTML = "";
+          textField.innerHTML = "";
+          picto.insertAdjacentHTML('beforeend', ` <img src="https://developer.accuweather.com/sites/default/files/${icon}-s.png" alt="weather-icon">`);
+          temperatureField.insertAdjacentHTML('beforeend', `${data[0].Temperature.Metric.Value}°`);
+          textField.insertAdjacentHTML('beforeend', `${data[0].WeatherText}`);
+        });
+    });
+});
+
+</script>
