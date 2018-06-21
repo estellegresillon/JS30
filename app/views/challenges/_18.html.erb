@@ -181,12 +181,17 @@
     <li data-time="4:04">
       Video 58
     </li>
+    <br>
+    <div id="total-time">
+
+    </div>
   </ul>
 
 
 <script>
 
 const timeNodes = Array.from(document.querySelectorAll('[data-time]'));
+const totalTime = document.getElementById('total-time');
 
 
 const seconds = timeNodes
@@ -206,6 +211,17 @@ const seconds = timeNodes
   secondsLeft = secondsLeft % 60;
 
   console.log(hours, mins, secondsLeft);
+
+
+// BONUS : add durations on the DOM :
+
+totalTime.insertAdjacentHTML('beforeend', `Total time : ${hours}:${mins}:${secondsLeft}`);
+
+const eachVideo = document.querySelectorAll('li');
+eachVideo.forEach((video) => {
+  const videoDuration = video.dataset.time;
+  video.insertAdjacentHTML('beforeend', `- ${videoDuration}`);
+});
 
 </script>
 </body>
