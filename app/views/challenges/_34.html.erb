@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Dropzone simple example</title>
+
+  </head>
+
+  <body>
+
+    <div id="dropZone">
+      <p id="title">DROPZONE</p>
+      <p><span id="fileNameInput">Drag & drop any type of file</span><span id="fileUploaded"></span></p>
+    </div>
+    <br>
+
+
+    <p><strong><span id="findTotal"></span> files on the server</strong></p>
+
+
+    <br>
+    <div id="downloadMe">
+      <form class="inactive">
+        <input type="submit" value="Select a file" />
+      </form>
+    </div>
+    <br>
+    <p>You can also upload a picture to display it below </p>
+    <div id="displayImg"></div>
+
+  </body>
+</html>
+
+
+<script>
+  const dropZone = document.getElementById('dropZone');
+  const fileNameInput = document.getElementById('fileNameInput');
+  const pause = document.getElementById('pause');
+  const fileUploaded = document.getElementById('fileUploaded');
+  const downloadMe = document.getElementById('downloadMe');
+  const findTotal = document.getElementById('findTotal');
+  const btn = document.getElementById('btn');
+
+
+  fetch(`http://hapi.fhir.org/baseDstu3/Binary`)
+    .then(response => response.json())
+    .then((data) => {
+      findTotal.insertAdjacentHTML('beforeend', `${data.total}`);
+    });
+
+  dropZone.addEventListener('dragover', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+  });
+
+  dropZone.addEventListener('drop', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      var files = e.dataTransfer.files;
+
+      const fileName = files[0].name;
+
+      fileNameInput.innerHTML = ""
+      fileNameInput.insertAdjacentHTML('beforeend', `${fileName}`);
+
+      fetch('https://fhirtest.uhn.ca/baseDstu3/Binary', { method: 'POST', body: files[0] })
+        .then(response => response.json())
+        .then((data) => {
+          fileUploaded.innerHTML = ""
+          fileUploaded.insertAdjacentHTML('beforeend', " - <strong>File created !</strong>")
+           fetch(`http://hapi.fhir.org/baseDstu3/Binary`)
+            .then(response => response.json())
+            .then((data) => {
+              downloadMe.innerHTML = ""
+              downloadMe.insertAdjacentHTML('beforeend',
+                `<form class="active" action="https://fhirtest.uhn.ca/baseDstu3/Binary/${data.entry[0].resource.id}/_history/1">
+                  <input type="submit" value="Download file" />
+                </form>`)
+              findTotal.innerHTML = ""
+              findTotal.insertAdjacentHTML('beforeend', `${data.total}`);
+              console.log(data.total);
+            });
+        });
+
+        for (var i=0, file; file=files[i]; i++) {
+          if (file.type.match(/image.*/)) {
+            var reader = new FileReader();
+
+            reader.onload = function(e2) {
+              // finished reading file data.
+              const img = document.createElement('img');
+              const displayImg = document.getElementById('displayImg');
+              img.src = e2.target.result;
+              displayImg.innerHTML = ""
+              displayImg.appendChild(img);
+            }
+
+            reader.readAsDataURL(file); // start reading the file data.
+          }
+      }
+
+  });
+
+  window.setInterval(function(){
+    /// call your function here
+    fetch(`http://hapi.fhir.org/baseDstu3/Binary`)
+      .then(response => response.json())
+      .then((data) => {
+        findTotal.innerHTML = ""
+        findTotal.insertAdjacentHTML('beforeend', `${data.total}`);
+      });
+  }, 1000);
+
+</script>
+
+<style>
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,700,900|Open+Sans');
+
+/*Global*/
+body {
+  font-family: "Montserrat";
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  color: white;
+  flex-direction: column;
+  padding: 50px 0px 50px 0px;
+  background: linear-gradient(135deg, #ef7070 0%, #FF0000 100%);
+}
+
+/*Dropzone*/
+#dropZone {
+  width: 70%;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: #FF0000;
+  border-radius: 10px;
+  transition: all 1s ease;
+  box-shadow: 0 2px 15px 0 rgba(0,0,0,0.4);
+  margin: 20px;
+  background-color: white;
+}
+
+#dropZone:hover {
+  box-shadow: 0 2px 20px 0 rgba(0,0,0,0.5);
+}
+
+#title {
+  font-weight: 900;
+  font-size: 32px;
+}
+
+#descr {
+  font-weight: 400;
+}
+
+
+/*Download file*/
+#downloadMe .active input {
+  border-radius: 15px;
+  font-family: "Montserrat";
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #ef7070 0%, #FF0000 100%);
+  transition: all 1s ease;
+  box-shadow: 0 2px 6px 0 rgba(0,0,0,0.4);
+}
+
+#downloadMe .active:hover input {
+  background: linear-gradient(135deg, #FF0000 0%, #B22222 100%);
+  box-shadow: 0 5px 10px 0 rgba(0,0,0,0.4);
+}
+
+#downloadMe .inactive input {
+  border-radius: 15px;
+  font-family: "Montserrat";
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #ef7070 0%, #FF0000 100%);
+  transition: all 1s ease;
+  box-shadow: 0 2px 6px 0 rgba(0,0,0,0.4);
+  pointer-events:none;
+  opacity: 0.5;
+}
+
+
+
+/* Image */
+#displayImg {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+#displayImg img {
+  width: 80%;
+}
+
+
+
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted white; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+  font-size: 12px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* Tooltip arrow */
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+</style>
